@@ -33,24 +33,24 @@
   .label.hidden { display: none; }
 
   #panel {
-    position: fixed; top: 14px; left: 14px; width: 220px;
+    position: fixed; top: 12px; left: 12px; width: 166px;
     background: rgba(14,18,26,.8); backdrop-filter: blur(10px);
-    border: 1px solid #212838; border-radius: 12px; padding: 14px 15px;
-    box-shadow: 0 10px 34px rgba(0,0,0,.5);
+    border: 1px solid #212838; border-radius: 10px; padding: 10px 11px;
+    box-shadow: 0 8px 26px rgba(0,0,0,.5); font-size: 11px;
   }
-  #panel h1 { font-size: 14px; margin: 0 0 2px; }
-  #panel .sub { color: #78839a; font-size: 11px; margin-bottom: 12px; }
-  .ctl { margin: 9px 0; }
-  .ctl label { display: flex; justify-content: space-between; color: #93a0b6; margin-bottom: 3px; }
+  #panel h1 { font-size: 12px; margin: 0 0 1px; }
+  #panel .sub { color: #78839a; font-size: 9.5px; margin-bottom: 8px; }
+  .ctl { margin: 6px 0; }
+  .ctl label { display: flex; justify-content: space-between; color: #93a0b6; margin-bottom: 2px; font-size: 10px; }
   .ctl label b { color: #d3dae7; font-variant-numeric: tabular-nums; }
-  input[type=range] { width: 100%; accent-color: #6c8cff; }
-  .row { display: flex; gap: 8px; margin-top: 12px; }
+  input[type=range] { width: 100%; height: 3px; accent-color: #6c8cff; }
+  .row { display: flex; gap: 6px; margin-top: 9px; }
   button {
     flex: 1; background: #171f2e; color: #d3dae7; border: 1px solid rgba(41,51,70,.6);
-    border-radius: 8px; padding: 7px 8px; cursor: pointer; font-size: 12px;
+    border-radius: 7px; padding: 5px 6px; cursor: pointer; font-size: 10.5px;
   }
   button:hover { background: #1f293b; }
-  .legend { margin-top: 12px; border-top: 1px solid #212838; padding-top: 10px; color: #7f8aa0; font-size: 11px; }
+  .legend { margin-top: 9px; border-top: 1px solid #212838; padding-top: 8px; color: #7f8aa0; font-size: 9.5px; line-height: 1.35; }
   #tip {
     position: fixed; pointer-events: none; z-index: 10; padding: 6px 9px;
     background: #06080d; border: 1px solid #2b3446; border-radius: 8px; font-size: 12px;
@@ -68,6 +68,11 @@
       <stop offset="42%" stop-color="#6d93ff"/>
       <stop offset="100%" stop-color="#3358d8"/>
     </radialGradient>
+    <radialGradient id="redGrad" cx="35%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#ffd6cf"/>
+      <stop offset="42%" stop-color="#ff6a5a"/>
+      <stop offset="100%" stop-color="#c81f2e"/>
+    </radialGradient>
   </defs>
 </svg>
 
@@ -75,16 +80,16 @@
   <h1>Who-knows-whom</h1>
   <div class="sub" id="meta">…</div>
   <div class="ctl"><label>Charge <b id="vCharge">— </b></label>
-    <input id="charge" type="range" autocomplete="off" min="80" max="1800" step="20" value="820"></div>
+    <input id="charge" type="range" autocomplete="off" min="80" max="3200" step="20" value="1800"></div>
   <div class="ctl"><label>Link distance <b id="vDist">—</b></label>
-    <input id="dist" type="range" autocomplete="off" min="20" max="220" step="2" value="95"></div>
+    <input id="dist" type="range" autocomplete="off" min="20" max="320" step="2" value="170"></div>
   <div class="ctl"><label>Link strength <b id="vStr">—</b></label>
     <input id="str" type="range" autocomplete="off" min="0" max="1" step="0.02" value="0.14"></div>
   <div class="row">
     <button id="reheat">Re-settle</button>
     <button id="labels">Labels: hubs</button>
   </div>
-  <div class="legend">Node size = number of connections. Hollow rings are people named by others who never filled the form. Hover to isolate a circle of friends; drag to rearrange. The layout cools down and holds still.</div>
+  <div class="legend">Node size = number of connections. Hover to isolate a circle of friends; drag to rearrange.</div>
 </div>
 
 <div id="tip"></div>
@@ -116,14 +121,14 @@
     `${G.meta.node_count} people · ${G.meta.edge_count} links · ${G.meta.mutual_edges} mutual`;
 
   // ---- forces ------------------------------------------------------------
-  const P = { charge: 820, dist: 95, str: 0.14 };
+  const P = { charge: 1800, dist: 170, str: 0.14 };
   const sim = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(P.dist).strength(P.str))
     .force('charge', d3.forceManyBody().strength(-P.charge))
     .force('center', d3.forceCenter(W() / 2, H() / 2))
     .force('collide', d3.forceCollide(d => rOf(d.degree) + 6).strength(0.9))
-    .force('x', d3.forceX(W() / 2).strength(0.03))
-    .force('y', d3.forceY(H() / 2).strength(0.03))
+    .force('x', d3.forceX(W() / 2).strength(0.08))
+    .force('y', d3.forceY(H() / 2).strength(0.08))
     .alphaDecay(0.028)      // cools to rest, then stops
     .on('tick', ticked);
 
@@ -138,12 +143,13 @@
     .on('mouseenter', (e, d) => setHover(d))
     .on('mouseleave', () => setHover(null));
 
+  const isRed = d => d.id === 'Caeden';
   node.append('circle')
     .attr('r', d => rOf(d.degree))
-    .attr('fill', d => d.responded ? 'url(#nodeGrad)' : 'rgba(110,140,220,0.05)')
-    .attr('stroke', d => d.responded ? 'rgba(190,212,255,0.75)' : 'rgba(140,168,230,0.55)')
-    .attr('stroke-width', d => d.responded ? 1 : 1.1)
-    .style('filter', d => `drop-shadow(0 0 ${4 + rOf(d.degree) * 0.5}px rgba(78,124,255,.45))`);
+    .attr('fill', d => isRed(d) ? 'url(#redGrad)' : 'url(#nodeGrad)')
+    .attr('stroke', d => isRed(d) ? 'rgba(255,200,192,0.8)' : 'rgba(190,212,255,0.75)')
+    .attr('stroke-width', 1)
+    .style('filter', d => `drop-shadow(0 0 ${4 + rOf(d.degree) * 0.5}px ${isRed(d) ? 'rgba(255,70,60,.5)' : 'rgba(78,124,255,.45)'})`);
 
   const label = gLabel.selectAll('text').data(nodes).join('text')
     .attr('class', 'label')
@@ -237,13 +243,13 @@
       .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
   }
   sim.on('end', () => fitToView());
-  document.getElementById('reheat').addEventListener('click', () => setTimeout(fitToView, 1600));
+  document.getElementById('reheat').addEventListener('click', () => setTimeout(fitToView, 4500));
 
   // recenter forces on resize
   window.addEventListener('resize', () => {
     sim.force('center', d3.forceCenter(W() / 2, H() / 2));
-    sim.force('x', d3.forceX(W() / 2).strength(0.03));
-    sim.force('y', d3.forceY(H() / 2).strength(0.03));
+    sim.force('x', d3.forceX(W() / 2).strength(0.08));
+    sim.force('y', d3.forceY(H() / 2).strength(0.08));
     reheat(0.2);
   });
 })();
