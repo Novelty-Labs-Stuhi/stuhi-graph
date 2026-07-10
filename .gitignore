@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .claude/
 .DS_Store
+
+keyfile
+*.pem
+id_*

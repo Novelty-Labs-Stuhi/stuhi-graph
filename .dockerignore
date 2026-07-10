@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.claude/
+.git/
+.gitignore
+*.py
+responses.csv
+README.md
+.DS_Store

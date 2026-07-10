@@ -4,6 +4,8 @@ A "who-knows-whom" social graph built from a Google Form where each person
 selected everyone they know. The result is an interactive, Neo4j-Bloom-style
 network you can explore in the browser.
 
+**Live:** https://stuhi-graph-439502948711.europe-north1.run.app
+
 ![graph](graph.png)
 
 ## What's here
@@ -42,6 +44,26 @@ python3 plot_graph.py
 python3 -m http.server 8117
 # then open http://localhost:8117
 ```
+
+## Deploy (Cloud Run)
+
+The viewer is a static site served by nginx (`Dockerfile` + `nginx.conf`),
+built with Cloud Build and hosted on Cloud Run.
+
+```bash
+IMAGE="europe-north1-docker.pkg.dev/cleveland-464404-m0/web/stuhi-graph:latest"
+
+# build + push the container
+gcloud builds submit --tag "$IMAGE"
+
+# deploy (public)
+gcloud run deploy stuhi-graph \
+  --image="$IMAGE" --region=europe-north1 \
+  --allow-unauthenticated --port=8080
+```
+
+Rebuild the graph (`python3 build_graph.py`) before building the image if
+`responses.csv` changed.
 
 ## Viewer controls
 
